@@ -17,46 +17,57 @@ spec:
         source: Inline
         inline:
           template: |
-            {{- range $i := until ( .observed.composite.resource.spec.count | int ) }}
-            ---
-            apiVersion: iam.aws.upbound.io/v1beta1
-            kind: User
-            metadata:
-              annotations:
-                {{ setResourceNameAnnotation (print "test-user-" $i) }}
-              labels:
-                testing.upbound.io/example-name: test-user-{{ $i }}
-                dummy: {{ dig "resources" (print "test-user-" $i) "resource" "metadata" "labels" "dummy" ( randomChoice "foo" "bar" "baz" ) $.observed }}            
-            spec:
-              forProvider: {}
-            ---
-            apiVersion: iam.aws.upbound.io/v1beta1
-            kind: AccessKey
-            metadata:
-              annotations:
-                {{ setResourceNameAnnotation (print "sample-access-key-" $i) }}
-            spec:
-              forProvider:
-                userSelector:
+            conditions:
+              - type: Progressing
+                status: true
+                reason: Testing
+                message: Hello World
+                target: composite
+              - type: Walking
+                status: unknown
+              - type: Running
+                status: "true"
+                reason: StringValue
+            results:
+              - severity: normal
+                reason: norway
+                message: foo
+                target: composite
+            requirements:
+              resources:
+                ns:
+                  apiVersion: v1
+                  kind: Namespace
+                  matchName: foo
+                ns2:
+                  apiVersion: v1
+                  kind: Namespace
                   matchLabels:
-                    testing.upbound.io/example-name: test-user-{{ $i }}
-              writeConnectionSecretToRef:
-                name: sample-access-key-secret-{{ $i }}
-                namespace: crossplane-system
-            {{- end }}
-            ---
-            apiVersion: meta.gotemplating.fn.crossplane.io/v1alpha1
-            kind: CompositeConnectionDetails
-            {{ if eq $.observed.resources nil }}
-            data: {}
-            {{ else }}
-            data:
-              username: {{ ( index $.observed.resources "sample-access-key-0" ).connectionDetails.username }}
-              password: {{ ( index $.observed.resources "sample-access-key-0" ).connectionDetails.password }}
-              url: {{ "http://www.example.com" | b64enc }}
-            {{ end }}
-            ---
-            apiVersion: example.crossplane.io/v1beta1
-            kind: XR
-            status:
-              dummy: cool-status
+                    labels:
+                      foo: bar
+                      fuz: buf
+                ns3:
+                  apiVersion: v1
+                  kind: Namespace
+                  matchLabels:
+                    labels: {}
+            desired:
+              resources:
+                sa:
+                  resource:
+                    apiVersion: v1
+                    kind: ServiceAccount
+                    metadata:
+                      name: {{ .observed.composite.resource.metadata.name }}
+                  ready: true
+                {{- with .observed.resources.sa.resource }}
+                cm:
+                  resource:
+                    apiVersion: v1
+                    kind: ConfigMap
+                    metadata:
+                      name: foo
+                    data:
+                      serviceAccountName: {{ .metadata.name }}
+                  ready: false
+                {{- end }}

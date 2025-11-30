@@ -2,6 +2,8 @@ module github.com/crossplane-contrib/function-go-templating
 
 go 1.24.9
 
+replace github.com/crossplane/function-sdk-go => github.com/avarei/function-sdk-go v0.0.0-20251130182136-15727a38866c
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/Masterminds/sprig/v3 v3.3.0
