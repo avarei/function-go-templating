@@ -13,6 +13,7 @@ import (
 
 	"dario.cat/mergo"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -112,6 +113,21 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	}
 
 	f.log.Debug("rendered manifests", "manifests", buf.String())
+
+	if in.Style != nil && *in.Style == "RunFunctionResponse" {
+		overlay := &fnv1.RunFunctionResponse{}
+		json, err := yaml.ToJSON(buf.Bytes())
+		if err != nil {
+			response.Fatal(rsp, errors.Wrap(err, "cannot convert yaml to json"))
+			return rsp, nil
+		}
+		if err := protojson.Unmarshal(json, overlay); err != nil {
+			response.Fatal(rsp, errors.Wrap(err, "cannot unmarshal RunFunctionResponse"))
+			return rsp, nil
+		}
+		proto.Merge(rsp, overlay)
+		return rsp, nil
+	}
 
 	// Parse the rendered manifests.
 	var objs []*unstructured.Unstructured

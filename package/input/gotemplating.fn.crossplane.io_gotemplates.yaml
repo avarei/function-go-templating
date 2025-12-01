@@ -79,6 +79,13 @@ spec:
             description: Source specifies the different types of input sources that
               can be used with this function
             type: string
+          style:
+            description: |-
+              Style specifies how the composition is expected to be structured.
+              Resource expects the output to be a set of Manifests.
+              RunFunctionResponse expects a yaml representation of a RunFunctionResponse struct.
+              Defaults to Resource.
+            type: string
         required:
         - source
         type: object

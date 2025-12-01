@@ -31,6 +31,11 @@ type GoTemplate struct {
 	Environment *TemplateSourceEnvironment `json:"environment,omitempty"`
 	// Options to set for the template engine. Valid options are documented at https://pkg.go.dev/text/template#Template.Option
 	Options *[]string `json:"options,omitempty"`
+	// Style specifies how the composition is expected to be structured.
+	// Resource expects the output to be a set of Manifests.
+	// RunFunctionResponse expects a yaml representation of a RunFunctionResponse struct.
+	// Defaults to Resource.
+	Style *string `json:"style,omitempty"`
 }
 
 type TemplateSource string
